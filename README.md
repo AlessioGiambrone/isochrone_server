@@ -27,7 +27,7 @@ mvn package
 
 ## Docker
 
-After building with maven, you can continue with the container with just
+You can build the container with just
 
 ```bash
 docker build -t nearby_geoserver .
