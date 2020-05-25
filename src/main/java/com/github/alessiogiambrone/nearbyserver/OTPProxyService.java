@@ -1,13 +1,15 @@
 package com.github.alessiogiambrone.nearbyserver;
 
 import java.io.File;
-import java.nio.file.Paths;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.alessiogiambrone.nearbyserver.dto.Boundary;
 import lombok.Data;
+import lombok.Getter;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.geojson.feature.FeatureJSON;
+import org.locationtech.jts.geom.Envelope;
 import org.opentripplanner.analyst.core.IsochroneData;
 import org.opentripplanner.analyst.request.IsoChroneRequest;
 import org.opentripplanner.common.model.GenericLocation;
@@ -41,6 +43,8 @@ public class OTPProxyService {
     private Router router;
     private Graph gg;
     private RoutingRequest routingRequest;
+    @Getter
+    private Boundary boundaries = new Boundary();
 
     private String getPbfPath(String pbf) {
         File f = new File(pbf);
@@ -61,10 +65,13 @@ public class OTPProxyService {
     public OTPProxyService(@Value("${pbf.path}") String pbf) {
         pbf = getPbfPath(pbf);
         logger.info("loading file "+pbf);
+
         gg = new Graph();
         OpenStreetMapModule loader = getLoader(pbf);
         loader.buildGraph(gg, extra);
         gg.index(new DefaultStreetVertexIndexFactory());
+        Envelope ed = gg.getExtent();
+        boundaries = new Boundary(ed.getMinY(), ed.getMaxY(), ed.getMinX(), ed.getMaxX());
         router = new Router("TEST", gg);
         Map ggConfig = new HashMap();
         ObjectMapper mapper = new ObjectMapper();
